@@ -1,11 +1,9 @@
 {
   "name": "com.waterkat.pooling",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "WaterKat Pooling",
   "description": "This will assist in creating and managing object pools for unity. This is to ease garbage collection.",
   "unity": "2021.1",
-  "dependencies": {
-  },
   "enableLockFile": true,
   "resolutionStrategy": "highest",
   "type": "library",
