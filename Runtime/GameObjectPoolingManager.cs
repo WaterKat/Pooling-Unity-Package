@@ -76,7 +76,7 @@ namespace WaterKat.Pooling
 
         public GameObject Obtain()
         {
-            GameObject gameObject = storedPooledObjects.Pop();
+            GameObject gameObject = null;
 
             while (gameObject == null)
             {
