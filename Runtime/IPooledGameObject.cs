@@ -8,6 +8,7 @@ namespace WaterKat.Pooling
     {
         IGameObjectPool Pool { get; }
         GameObject gameObject { get; }
+        void SetPoolOwner(IGameObjectPool _pool);
         void ReturnToPool();
     }
 }

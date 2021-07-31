@@ -10,7 +10,7 @@ namespace WaterKat.Pooling
 
         public IGameObjectPool Pool { get => pool; }
 
-        public void SetPooledObject(IGameObjectPool _pool)
+        public void SetPoolOwner(IGameObjectPool _pool)
         {
             pool = _pool;
         }

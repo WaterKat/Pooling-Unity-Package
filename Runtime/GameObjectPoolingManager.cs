@@ -11,7 +11,6 @@ namespace WaterKat.Pooling
         private GameObject templateGameObject;
 
         private Stack<GameObject> storedPooledObjects;
-        private Stack<GameObject> activePooledObjects;
 
         private MonoBehaviour parentMonobehavior;
         PoolingManagerOwner poolingManagerOwner;
@@ -24,12 +23,16 @@ namespace WaterKat.Pooling
         public int SoftMaximumCount = 50;
         public int HardMaximumCount = 100;
 
+        public bool FlexibleMaxCount = true;
+
         private GameObjectPoolingManager() {}
         public GameObjectPoolingManager(MonoBehaviour _parentMonobehavior,GameObject _gameObject)
         {
             poolContainer = new GameObject(_gameObject.name+" Pool");
 
             templateGameObject = UnityEngine.Object.Instantiate(_gameObject);
+            templateGameObject.transform.parent = poolContainer.transform;
+            templateGameObject.name = _gameObject.name;
             templateGameObject.SetActive(false);
             templateGameObject.AddComponent<PooledObjectTag>();
 
@@ -37,60 +40,74 @@ namespace WaterKat.Pooling
 
             poolingManagerOwner = parentMonobehavior.gameObject.GetComponent<PoolingManagerOwner>();
             if (poolingManagerOwner == null)
-                poolingManagerOwner = poolingManagerOwner.gameObject.AddComponent<PoolingManagerOwner>();
+                poolingManagerOwner = parentMonobehavior.gameObject.AddComponent<PoolingManagerOwner>();
             poolingManagerOwner.OnPoolingManagerOwnerDestroyed += OnDestroy;
 
             storedPooledObjects = new Stack<GameObject>();
 
-            InitializePool();
+            RefillPool();
         }
 
-        private void InitializePool()
+        private void RefillPool()
         {
-            for (int i = 0; i < SoftMinimumCount; i++)
+            while (storedPooledObjects.Count < SoftMinimumCount)
             {
                 CreateNewPooledObject();
             }
         }
-
         private void CreateNewPooledObject()
         {
             GameObject _gameObject = UnityEngine.GameObject.Instantiate(templateGameObject);
+            _gameObject.transform.parent = poolContainer.transform;
+
+            IPooledGameObject pooledGameObject = _gameObject.GetComponent<IPooledGameObject>();
+            pooledGameObject?.SetPoolOwner(this);
+
             storedPooledObjects.Push(_gameObject);
         }
 
         public void OnDestroy()
         {
-            foreach (GameObject pooledObject in storedPooledObjects)
-            {
-                UnityEngine.Object.Destroy(pooledObject);
-            }
             UnityEngine.Object.Destroy(poolContainer);
         }
 
         public GameObject Obtain()
         {
             GameObject gameObject = storedPooledObjects.Pop();
-            activePooledObjects.Push(gameObject);
+
+            while (gameObject == null)
+            {
+                RefillPool();
+                gameObject = storedPooledObjects.Pop();
+            }
+
+            RefillPool();
             return gameObject;
         }
 
-        public GameObject Relinquish(IPooledGameObject _pooledObject)
+        public void Relinquish(IPooledGameObject _pooledObject)
         {
-            if (_pooledObject.Pool == this)
+            if (_pooledObject.Pool != this)
             {
-                _pooledObject.gameObject.SetActive(false);
-                storedPooledObjects.Push(_pooledObject.gameObject);
+                Debug.LogError("The Pooled Object does not belong to this pool");
+                return;
             }
-            else
+
+
+            if ((storedPooledObjects.Count >= HardMaximumCount)&& (!FlexibleMaxCount))
             {
-                Debug.LogError
+                Terminate(_pooledObject);
+                return;
             }
+
+            _pooledObject.gameObject.SetActive(false);
+
+            storedPooledObjects.Push(_pooledObject.gameObject);
         }
 
-        public GameObject Terminate(IPooledGameObject _pooledObject)
+        public void Terminate(IPooledGameObject _pooledObject)
         {
-            throw new NotImplementedException();
+            UnityEngine.Object.Destroy(_pooledObject.gameObject);
         }
     }
 }
