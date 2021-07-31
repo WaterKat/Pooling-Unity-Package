@@ -28,6 +28,9 @@ namespace WaterKat.Pooling
         private GameObjectPoolingManager() {}
         public GameObjectPoolingManager(MonoBehaviour _parentMonobehavior,GameObject _gameObject)
         {
+            if (_parentMonobehavior == null) { Debug.LogWarning("Invalid Monobehavior"); }
+            if (_gameObject == null) { Debug.LogWarning("Invalid GameObject"); }
+
             poolContainer = new GameObject(_gameObject.name+" Pool");
 
             templateGameObject = UnityEngine.Object.Instantiate(_gameObject);
@@ -92,7 +95,6 @@ namespace WaterKat.Pooling
                 Debug.LogError("The Pooled Object does not belong to this pool");
                 return;
             }
-
 
             if ((storedPooledObjects.Count >= HardMaximumCount)&& (!FlexibleMaxCount))
             {
