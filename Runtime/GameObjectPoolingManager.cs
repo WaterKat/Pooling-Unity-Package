@@ -100,6 +100,12 @@ namespace WaterKat.Pooling
                 return;
             }
 
+            if (storedPooledObjects.Contains(_pooledObject.gameObject))
+            {
+                Debug.LogError("The Pooled Object is already in pool");
+                return;
+            }
+
             _pooledObject.gameObject.SetActive(false);
 
             storedPooledObjects.Push(_pooledObject.gameObject);
